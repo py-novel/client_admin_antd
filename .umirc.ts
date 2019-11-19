@@ -6,9 +6,10 @@ const config: IConfig =  {
   routes: [
     {
       path: '/',
-      component: '../layouts/index',
+      component: '../pages/layout/index',
       routes: [
-        { path: '/', component: '../pages/index' }
+        { path: '/', component: '../pages/dashboard/index' },
+        { path: '/gyyd/classify', component: '../pages/gyyd/classify/index' },
       ]
     }
   ],
@@ -35,6 +36,13 @@ const config: IConfig =  {
       },
     }],
   ],
+  proxy: {
+    '/api/v1': {
+      target: 'http://localhost:3000/',
+      changeOrigin: true,
+      pathRewrite: { "^/api/v1" : "" }
+    }
+  },
 }
 
 export default config;
