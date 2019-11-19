@@ -155,8 +155,11 @@ export default function () {
             }
 
             {
-                editVisible && <EditModal currentItem={currentItem} visible={editVisible} 
-                    onCancel={setEditVisible} onOk={editModalOk}/>}
+                editVisible && (
+                    <EditModal currentItem={currentItem} visible={editVisible} 
+                        onCancel={setEditVisible} onOk={editModalOk}/>
+                )
+            }
         </>
     )
 }
