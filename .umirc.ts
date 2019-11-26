@@ -8,7 +8,7 @@ const config: IConfig =  {
       path: '/',
       component: '../pages/layout/index',
       routes: [
-        { path: '/', component: '../pages/dashboard/index' },
+        { path: '/', component: '../pages/gyyd/classify/index' },
         { path: '/gyyd/classify', component: '../pages/gyyd/classify/index' },
       ]
     }
