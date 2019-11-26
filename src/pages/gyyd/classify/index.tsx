@@ -66,7 +66,7 @@ export default function () {
      */
     const editModalOk = async (data: IClassify, currentItem: IClassify) => {
         if (currentItem) {
-            await axios.put(`/api/v1/classify/${data.id}`, data)
+            await axios.put(`/api/v1/classify/${currentItem.id}`, data)
         } else {
             await axios.post('/api/v1/classify', data)
         }
