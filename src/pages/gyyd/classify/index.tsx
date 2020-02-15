@@ -17,9 +17,11 @@ export default function () {
     const [checkVisible, setCheckVisible] = useState<boolean>(false)          // 查看模态框是否可见
     const [editVisible, setEditVisible] = useState<boolean>(false)            // 新增/编辑模态框是否可见
     const [currentItem, setCurrentItem] = useState<IClassify | null>()        // 表格当前操作行 
+    const [loading, setLoading] = useState<boolean>(false)                    // 是否在请求中
 
     useEffect(() => {
         async function fetchData() {
+            setLoading(true)
             const result = await axios.get('/api/v1/classify', { params: queryData })
             const pagination = {
                 current: queryData._page,
@@ -29,6 +31,7 @@ export default function () {
 
             setList(result.data)
             setPage(pagination)
+            setLoading(false)
         }
         fetchData()
     }, [queryData])
@@ -137,7 +140,7 @@ export default function () {
                 render: (text: any, record: IClassify) => {
                     return (
                         <span>
-                            <Popconfirm 
+                            <Popconfirm
                                 title="确认删除?"
                                 okText="确认"
                                 cancelText="取消"
@@ -161,13 +164,14 @@ export default function () {
         }
 
         return (
-            <Table 
+            <Table
                 dataSource={list}
                 columns={columns}
                 size="middle"
                 bordered={true}
                 pagination={pagination}
                 rowKey="id"
+                loading={loading}
             />
         )
     }
@@ -265,10 +269,10 @@ export default function () {
         if (!currentItem) return null
 
         return (
-            <Modal 
-                visible={true} 
-                title="查看" 
-                footer={null} 
+            <Modal
+                visible={true}
+                title="查看"
+                footer={null}
                 onCancel={() => setCheckVisible(false)}
             >
                 <Descriptions column={1} bordered={true}>
