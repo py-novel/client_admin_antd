@@ -3,7 +3,7 @@
   "scripts": {
     "dev": "npm run serve & npm run start",
     "start": "umi dev",
-    "serve": "json-server --watch db.json --port 3300",
+    "serve": "json-server --watch db.json",
     "build": "umi build",
     "test": "umi test",
     "lint:es": "eslint --ext .js src mock tests",
