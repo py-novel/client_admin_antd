@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Layout, Menu, Icon, Avatar } from 'antd'
-import router from 'umi/router'
+import { history } from 'umi'
 import logo from '../../assets/logo.png'
 import styles from './index.less'
 import menus, { IMenu } from '../../configs/menu'
@@ -12,11 +12,11 @@ const { Header, Sider, Content } = Layout;
  */
 export const arrayToTree = (array: IMenu[]) => {
     const data: IMenu[] = JSON.parse(JSON.stringify(array))
-    
+
     const hash: { [key: string]: IMenu } = {}
     data.forEach((item: IMenu) => {
         hash[item['id']] = item
-    }) 
+    })
 
     const result: Array<IMenu> = []
     data.forEach((item: IMenu) => {
@@ -49,7 +49,7 @@ const geneMenuElements = (menuTree: IMenu[]) => {
             )
         }
         return (
-            <Menu.Item key={item.id} onClick={() => router.push(item.router as string)}>
+            <Menu.Item key={item.id} onClick={() => history.push(item.router as string)}>
                 <span>{item.name}</span>
             </Menu.Item>
         )
@@ -57,7 +57,7 @@ const geneMenuElements = (menuTree: IMenu[]) => {
 }
 
 export default function ({ children }: { children: React.ReactNode }) {
-    const [ collapsed, setCollapsed ] = useState<boolean>(false)
+    const [collapsed, setCollapsed] = useState<boolean>(false)
 
     // 列表数据转树形结构
     const menuTree = arrayToTree(menus)
