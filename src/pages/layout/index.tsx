@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Layout, Menu, Avatar } from 'antd'
 import { MenuFoldOutlined, MenuUnfoldOutlined, createFromIconfontCN } from '@ant-design/icons'
-import router from 'umi/router'
+import { history } from 'umi'
 import logo from '../../assets/logo.png'
 import styles from './index.less'
 import menus, { IMenu } from '../../configs/menu'
@@ -56,7 +56,7 @@ const geneMenuElements = (menuTree: IMenu[]) => {
             )
         }
         return (
-            <Menu.Item key={item.id} onClick={() => router.push(item.router as string)}>
+            <Menu.Item key={item.id} onClick={() => history.push(item.router as string)}>
                 {item.icon && <IconFont type={item.icon} />}
                 <span>{item.name}</span>
             </Menu.Item>
