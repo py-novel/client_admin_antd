@@ -1,9 +1,15 @@
 import React, { useState } from 'react'
-import { Layout, Menu, Icon, Avatar } from 'antd'
+import { Layout, Menu, Avatar } from 'antd'
+import { MenuFoldOutlined, MenuUnfoldOutlined, createFromIconfontCN } from '@ant-design/icons'
 import router from 'umi/router'
 import logo from '../../assets/logo.png'
 import styles from './index.less'
 import menus, { IMenu } from '../../configs/menu'
+import { iconfontJs } from '../../configs/config'
+
+const IconFont = createFromIconfontCN({
+    scriptUrl: iconfontJs,
+});
 
 const { Header, Sider, Content } = Layout;
 
@@ -12,11 +18,11 @@ const { Header, Sider, Content } = Layout;
  */
 export const arrayToTree = (array: IMenu[]) => {
     const data: IMenu[] = JSON.parse(JSON.stringify(array))
-    
+
     const hash: { [key: string]: IMenu } = {}
     data.forEach((item: IMenu) => {
         hash[item['id']] = item
-    }) 
+    })
 
     const result: Array<IMenu> = []
     data.forEach((item: IMenu) => {
@@ -41,6 +47,7 @@ const geneMenuElements = (menuTree: IMenu[]) => {
                 <Menu.SubMenu
                     key={item.id}
                     title={<span>
+                        {item.icon && <IconFont type={item.icon} />}
                         <span>{item.name}</span>
                     </span>}
                 >
@@ -50,6 +57,7 @@ const geneMenuElements = (menuTree: IMenu[]) => {
         }
         return (
             <Menu.Item key={item.id} onClick={() => router.push(item.router as string)}>
+                {item.icon && <IconFont type={item.icon} />}
                 <span>{item.name}</span>
             </Menu.Item>
         )
@@ -57,7 +65,7 @@ const geneMenuElements = (menuTree: IMenu[]) => {
 }
 
 export default function ({ children }: { children: React.ReactNode }) {
-    const [ collapsed, setCollapsed ] = useState<boolean>(false)
+    const [collapsed, setCollapsed] = useState<boolean>(false)
 
     // 列表数据转树形结构
     const menuTree = arrayToTree(menus)
@@ -78,11 +86,11 @@ export default function ({ children }: { children: React.ReactNode }) {
             </Sider>
             <Layout>
                 <Header style={{ background: '#fff', padding: 0 }}>
-                    <Icon
-                        className={styles.trigger}
-                        type={collapsed ? 'menu-unfold' : 'menu-fold'}
-                        onClick={() => setCollapsed(!collapsed)}
-                    />
+                    <span className={styles.trigger} onClick={() => setCollapsed(!collapsed)}>
+                        {
+                            collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />
+                        }
+                    </span>
                 </Header>
                 <Content className={styles.content}>
                     {children}

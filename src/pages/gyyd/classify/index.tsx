@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { Card, Table, Descriptions, Modal, message, Popconfirm, Divider, Button, Form, Row, Col, Input } from 'antd'
+import { SearchOutlined, ReloadOutlined } from '@ant-design/icons'
 import axios from 'axios'
-import { ColumnProps, PaginationConfig } from 'antd/es/table'
-import { FormComponentProps } from 'antd/es/form'
+import { ColumnProps } from 'antd/es/table'
+import { PaginationProps } from 'antd/es/pagination'
+import { useForm } from 'antd/lib/form/util'
 
 export interface IClassify {
     id?: number;
@@ -13,7 +15,7 @@ export interface IClassify {
 export default function () {
     const [list, setList] = useState<Array<IClassify>>([])                    // 表格数据
     const [queryData, setQueryData] = useState<{ [key: string]: any }>({ _page: 1, _limit: 10 })        // 查询条件
-    const [page, setPage] = useState<PaginationConfig>()                      // 分页参数
+    const [page, setPage] = useState<PaginationProps>()                       // 分页参数
     const [checkVisible, setCheckVisible] = useState<boolean>(false)          // 查看模态框是否可见
     const [editVisible, setEditVisible] = useState<boolean>(false)            // 新增/编辑模态框是否可见
     const [currentItem, setCurrentItem] = useState<IClassify | null>()        // 表格当前操作行 
@@ -39,20 +41,21 @@ export default function () {
     /**
      * 查询表单
      */
-    const QueryForm = ({ form }: FormComponentProps) => {
-        const { getFieldDecorator, getFieldsValue, resetFields } = form
+    const QueryForm = () => {
+        const [form] = Form.useForm();
+        const { getFieldsValue, resetFields } = form
 
-        const search = () => {
+        const onSearch = () => {
             const data = getFieldsValue()
             setQueryData({ ...queryData, ...data, _page: 1, _limit: 10 })
         }
 
-        const reset = () => {
+        const onReset = () => {
             resetFields(Object.keys(getFieldsValue()))
             setQueryData({ _page: 1, _limit: 10 })
         }
 
-        const showEditModal = () => {
+        const onShowEditModal = () => {
             setEditVisible(true)
             setCurrentItem(null)
         }
@@ -70,50 +73,45 @@ export default function () {
         }
 
         return (
-            <Form>
+            <Form {...formLayout} form={form}>
                 <Row gutter={24}>
                     <Col {...colLayout}>
-                        <Form.Item {...formLayout} label="描述">
-                            {
-                                getFieldDecorator('desc_like', { initialValue: queryData.desc_like })
-                                    (<Input placeholder="请输入描述" />)
-                            }
+                        <Form.Item name="desc_like" label="描述">
+                            <Input placeholder="请输入描述" />
                         </Form.Item>
                     </Col>
                 </Row>
 
-                <Row type="flex" justify="space-between">
+                <Row justify="space-between">
                     <Col>
-                        <Button type="primary" icon="search" onClick={search}>查询</Button>
-                        <Button icon="reload" style={{ marginLeft: '16px' }} onClick={reset}>重置</Button>
+                        <Button type="primary" icon={<SearchOutlined />} onClick={onSearch}>查询</Button>
+                        <Button style={{ marginLeft: '8px' }} icon={<ReloadOutlined />} onClick={onReset}>重置</Button>
                     </Col>
 
                     <Col>
-                        <Button type="primary" onClick={showEditModal}>新增</Button>
+                        <Button type="primary" onClick={onShowEditModal}>新增</Button>
                     </Col>
                 </Row>
             </Form>
         )
     }
 
-    const AQueryForm = Form.create()(QueryForm)
-
     /**
      * 表格
      */
     const TableComp = () => {
-        const remove = async (record: IClassify) => {
+        const onRemove = async (record: IClassify) => {
             await axios.delete(`/api/v1/classify/${record.id}`)
             setQueryData({ ...queryData, _page: 1, _limit: 10 })    // 新增完成后刷新表格
             message.success('操作成功')
         }
 
-        const check = (record: IClassify) => {
+        const onCheck = (record: IClassify) => {
             setCurrentItem(record)
             setCheckVisible(true)
         }
 
-        const showEditModal = (record: IClassify) => {
+        const onShowEditModal = (record: IClassify) => {
             setEditVisible(true)
             setCurrentItem(record)
         }
@@ -123,7 +121,7 @@ export default function () {
                 title: '主键',
                 dataIndex: 'id',
                 align: 'center',
-                render: (text: any, record: any) => <a onClick={() => check(record)}>{text}</a>,
+                render: (text: any, record: any) => <a onClick={() => onCheck(record)}>{text}</a>,
             },
             {
                 title: '路径',
@@ -144,11 +142,11 @@ export default function () {
                                 title="确认删除?"
                                 okText="确认"
                                 cancelText="取消"
-                                onConfirm={() => remove(record)}>
+                                onConfirm={() => onRemove(record)}>
                                 <Button type="link">删除</Button>
                             </Popconfirm>
                             <Divider type="vertical" />
-                            <Button type="link" onClick={() => showEditModal(record)}>
+                            <Button type="link" onClick={() => onShowEditModal(record)}>
                                 编辑
                       </Button>
                         </span>
@@ -157,9 +155,8 @@ export default function () {
             }
         ]
 
-        const pagination: PaginationConfig = {
+        const pagination: PaginationProps = {
             ...page,
-            position: 'top',
             onChange: (page, pageSize) => setQueryData({ ...queryData, _page: page, _limit: pageSize }),
         }
 
@@ -179,28 +176,24 @@ export default function () {
     /**
      * 新增/编辑模态框
      */
-    const EditModal = ({ form }: FormComponentProps) => {
-        const { getFieldDecorator, validateFields, getFieldsValue } = form
+    const EditModal = () => {
+        const [form] = useForm()
 
-        const submit = () => {
-            validateFields(async (err) => {
-                if (err) return
-                const data = getFieldsValue()
+        const onSubmit = async () => {
+            const data = await form.validateFields()
+            if (currentItem) {
+                await axios.put(`/api/v1/classify/${currentItem.id}`, data)
+            } else {
+                await axios.post('/api/v1/classify', data)
+            }
 
-                if (currentItem) {
-                    await axios.put(`/api/v1/classify/${currentItem.id}`, data)
-                } else {
-                    await axios.post('/api/v1/classify', data)
-                }
-
-                message.success('操作成功')
-                setEditVisible(false)
-                setCurrentItem(null)
-                setQueryData({ ...queryData })    // 新增完成后刷新表格
-            })
+            message.success('操作成功')
+            setEditVisible(false)
+            setCurrentItem(null)
+            setQueryData({ ...queryData })    // 新增完成后刷新表格
         }
 
-        const close = () => {
+        const onClose = () => {
             setEditVisible(false)
             setCurrentItem(null)
         }
@@ -216,51 +209,31 @@ export default function () {
                 visible={true}
                 maskClosable={false}
                 title={currentItem ? '编辑' : '新增'}
-                onOk={submit}
-                onCancel={close}
+                onOk={onSubmit}
+                onCancel={onClose}
             >
-                <Form>
-                    <Row>
-                        <Col span={24}>
-                            <Form.Item {...formLayout} label="路径" hasFeedback={true}>
-                                {
-                                    getFieldDecorator('path', {
-                                        initialValue: currentItem && currentItem.path,
-                                        rules: [
-                                            {
-                                                message: '路径不能为空',
-                                                required: true,
-                                            },
-                                        ],
-                                    })(<Input placeholder="请输入路径" />)
-                                }
-                            </Form.Item>
-                        </Col>
-                    </Row>
+                <Form {...formLayout} form={form} initialValues={currentItem || {}}>
+                    <Form.Item
+                        name="path"
+                        label="路径"
+                        hasFeedback={true}
+                        rules={[{ required: true, message: '路径不能为空' }]}
+                    >
+                        <Input placeholder="请输入路径" />
+                    </Form.Item>
 
-                    <Row>
-                        <Col span={24}>
-                            <Form.Item {...formLayout} label="描述" hasFeedback={true}>
-                                {
-                                    getFieldDecorator('desc', {
-                                        initialValue: currentItem && currentItem.desc,
-                                        rules: [
-                                            {
-                                                message: '描述不能为空',
-                                                required: true,
-                                            },
-                                        ],
-                                    })(<Input placeholder="请输入描述" />)
-                                }
-                            </Form.Item>
-                        </Col>
-                    </Row>
+                    <Form.Item
+                        name="desc"
+                        label="描述"
+                        hasFeedback={true}
+                        rules={[{ required: true, message: '描述不能为空' }]}
+                    >
+                        <Input placeholder="请输入描述" />
+                    </Form.Item>
                 </Form>
             </Modal>
         )
     }
-
-    const AEditModal = Form.create()(EditModal)
 
     /**
      * 查看模态框
@@ -287,7 +260,7 @@ export default function () {
     return (
         <>
             <Card style={{ marginBottom: '16px' }}>
-                <AQueryForm />
+                <QueryForm />
             </Card>
 
             <Card>
@@ -295,7 +268,7 @@ export default function () {
             </Card>
 
             {checkVisible && <CheckModal />}
-            {editVisible && <AEditModal />}
+            {editVisible && <EditModal />}
         </>
     )
 }
